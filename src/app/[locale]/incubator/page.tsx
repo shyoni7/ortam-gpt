@@ -1,4 +1,5 @@
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const copy: Record<AppLocale, { title: string; subtitle: string; stages: string[] }> = {
   he: {
@@ -23,8 +24,8 @@ const copy: Record<AppLocale, { title: string; subtitle: string; stages: string[
   },
 };
 
-export default function IncubatorPage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function IncubatorPage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const content = copy[locale];
 
   return (

@@ -1,4 +1,5 @@
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const sections: Record<AppLocale, { title: string; description: string; bullets: string[] }> = {
   he: {
@@ -21,8 +22,8 @@ const sections: Record<AppLocale, { title: string; description: string; bullets:
   },
 };
 
-export default function AcademyPage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function AcademyPage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const content = sections[locale];
 
   return (

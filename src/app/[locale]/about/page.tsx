@@ -1,4 +1,5 @@
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const content: Record<AppLocale, { title: string; paragraphs: string[] }> = {
   he: {
@@ -19,8 +20,8 @@ const content: Record<AppLocale, { title: string; paragraphs: string[] }> = {
   },
 };
 
-export default function AboutPage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function AboutPage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const page = content[locale];
 
   return (

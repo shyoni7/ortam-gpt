@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const heroContent: Record<AppLocale, { title: string; subtitle: string; primaryCta: string; secondaryCta: string; intro: string } & { pillars: { title: string; description: string; href: string }[] }> = {
   he: {
@@ -28,8 +29,8 @@ const heroContent: Record<AppLocale, { title: string; subtitle: string; primaryC
   },
 };
 
-export default function HomePage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function HomePage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const content = heroContent[locale];
 
   return (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const copy: Record<AppLocale, { title: string; description: string; name: string; email: string; message: string; submit: string; success: string; error: string }> = {
   he: {
@@ -28,8 +29,8 @@ const copy: Record<AppLocale, { title: string; description: string; name: string
 
 type Messages = (typeof copy)[AppLocale];
 
-export default function ContactPage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function ContactPage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const content = copy[locale];
 
   return (

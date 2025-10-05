@@ -1,4 +1,5 @@
-import type { AppLocale } from "@/i18n/request";
+import { notFound } from "next/navigation";
+import { resolveLocale, type AppLocale } from "@/i18n/request";
 
 const copy: Record<AppLocale, { title: string; intro: string; employers: string[]; candidates: string[] }> = {
   he: {
@@ -31,8 +32,8 @@ const copy: Record<AppLocale, { title: string; intro: string; employers: string[
   },
 };
 
-export default function PlacementPage({ params }: { params: { locale: AppLocale } }) {
-  const locale = params.locale;
+export default function PlacementPage({ params }: { params: { locale: string } }) {
+  const locale = resolveLocale(params.locale) ?? notFound();
   const content = copy[locale];
 
   return (
