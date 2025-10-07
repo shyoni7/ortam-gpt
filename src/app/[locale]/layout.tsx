@@ -1,18 +1,21 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { LocaleAttributes } from "@/components/locale-attributes";
-import {
-  dirForLocale,
-  resolveLocale,
-  locales,
-  type AppLocale,
-} from "@/i18n/request";
+import { ContentProvider } from "@/components/content-provider";
+import { resolveLocale, locales, dirForLocale } from "@/i18n/request";
 
 type LayoutProps = {
   children: ReactNode;
   params: { locale: string };
+};
+
+export const metadata: Metadata = {
+  title: "ORTAM AI – המרכז לפיתוח AI",
+  description:
+    "אתר תדמית דו-לשוני ל-ORTAM AI המציג את החממה, האקדמיה ומרכז ההשמה עם תמיכה ב-RTL/LTR.",
 };
 
 export function generateStaticParams() {
@@ -21,16 +24,16 @@ export function generateStaticParams() {
 
 export default function LocaleLayout({ children, params }: LayoutProps) {
   const locale = resolveLocale(params.locale) ?? notFound();
-  const dir = dirForLocale(locale);
-
   return (
-    <body lang={locale} dir={dir} className="bg-slate-950 text-slate-100 antialiased">
+    <>
       <LocaleAttributes locale={locale} />
-      <div className="flex min-h-screen flex-col">
-        <Header locale={locale} />
-        <main>{children}</main>
-        <Footer locale={locale} />
-      </div>
-    </body>
+      <ContentProvider locale={locale}>
+        <div className="flex min-h-screen flex-col" lang={locale} dir={dirForLocale(locale)}>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </div>
+      </ContentProvider>
+    </>
   );
 }

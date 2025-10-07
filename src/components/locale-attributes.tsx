@@ -7,7 +7,10 @@ export function LocaleAttributes({ locale }: { locale: AppLocale }) {
   useEffect(() => {
     const html = document.documentElement;
     html.setAttribute("lang", locale);
-    html.setAttribute("dir", dirForLocale(locale));
+    const dir = dirForLocale(locale);
+    html.setAttribute("dir", dir);
+    document.body.setAttribute("dir", dir);
+    document.body.setAttribute("lang", locale);
   }, [locale]);
 
   return null;
