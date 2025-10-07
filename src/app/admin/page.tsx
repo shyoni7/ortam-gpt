@@ -50,6 +50,30 @@ export default function AdminPage() {
     });
   }
 
+  function updatePillar(
+    index: number,
+    value: Partial<LocaleSiteContent["home"]["pillars"][number]>
+  ) {
+    updateDraft((prev) => {
+      prev.home.pillars[index] = { ...prev.home.pillars[index], ...value };
+      return prev;
+    });
+  }
+
+  function updatePrimaryCta(value: Partial<LocaleSiteContent["home"]["primaryCta"]>) {
+    updateDraft((prev) => {
+      prev.home.primaryCta = { ...prev.home.primaryCta, ...value };
+      return prev;
+    });
+  }
+
+  function updateSecondaryCta(value: Partial<LocaleSiteContent["home"]["secondaryCta"]>) {
+    updateDraft((prev) => {
+      prev.home.secondaryCta = { ...prev.home.secondaryCta, ...value };
+      return prev;
+    });
+  }
+
   function addGalleryImage() {
     updateDraft((prev) => {
       prev.home.gallery = [
@@ -300,6 +324,53 @@ export default function AdminPage() {
                 </label>
               </div>
               <div className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+                <span className="text-sm font-semibold text-primary-200">
+                  {activeLocale === "he" ? "קריאות לפעולה" : "Calls to action"}
+                </span>
+                <div className="grid gap-2 rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {activeLocale === "he" ? "CTA ראשי" : "Primary CTA"}
+                  </span>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "טקסט" : "Label"}</span>
+                    <input
+                      value={draft.home.primaryCta.label}
+                      onChange={(event) => updatePrimaryCta({ label: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "קישור" : "Path"}</span>
+                    <input
+                      value={draft.home.primaryCta.path}
+                      onChange={(event) => updatePrimaryCta({ path: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                </div>
+                <div className="grid gap-2 rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {activeLocale === "he" ? "CTA משני" : "Secondary CTA"}
+                  </span>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "טקסט" : "Label"}</span>
+                    <input
+                      value={draft.home.secondaryCta.label}
+                      onChange={(event) => updateSecondaryCta({ label: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "קישור" : "Path"}</span>
+                    <input
+                      value={draft.home.secondaryCta.path}
+                      onChange={(event) => updateSecondaryCta({ path: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
                 <span className="text-sm font-semibold text-primary-200">Gallery</span>
                 <div className="grid gap-3">
                   {draft.home.gallery.map((image, index) => (
@@ -346,11 +417,11 @@ export default function AdminPage() {
 
           <AdminCard title={activeLocale === "he" ? "תוכניות אקדמיה" : "Academy programs"}>
             <div className="grid gap-4">
-              {draft.academy.programs.map((program, index) => (
-                <div key={program.key} className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-sm">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {activeLocale === "he" ? `תוכנית ${index + 1}` : `Program ${index + 1}`}
-                  </span>
+                  {draft.academy.programs.map((program, index) => (
+                    <div key={program.key} className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-sm">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        {activeLocale === "he" ? `תוכנית ${index + 1}` : `Program ${index + 1}`}
+                      </span>
                   <label className="flex flex-col gap-1">
                     <span className="text-xs text-slate-400">{activeLocale === "he" ? "כותרת" : "Title"}</span>
                     <input
@@ -578,6 +649,42 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
+            </div>
+          </AdminCard>
+
+          <AdminCard title={activeLocale === "he" ? "כרטיסי דף הבית" : "Homepage cards"}>
+            <div className="grid gap-4">
+              {draft.home.pillars.map((pillar, index) => (
+                <div key={pillar.key} className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-sm">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {activeLocale === "he" ? `כרטיס ${index + 1}` : `Card ${index + 1}`}
+                  </span>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "כותרת" : "Title"}</span>
+                    <input
+                      value={pillar.title}
+                      onChange={(event) => updatePillar(index, { title: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "תיאור" : "Description"}</span>
+                    <textarea
+                      value={pillar.description}
+                      onChange={(event) => updatePillar(index, { description: event.target.value })}
+                      className="min-h-[70px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-slate-400">{activeLocale === "he" ? "נתיב" : "Path"}</span>
+                    <input
+                      value={pillar.path}
+                      onChange={(event) => updatePillar(index, { path: event.target.value })}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+                    />
+                  </label>
+                </div>
+              ))}
             </div>
           </AdminCard>
 
