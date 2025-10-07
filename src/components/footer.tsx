@@ -1,3 +1,5 @@
+"use client";
+
 import { useSiteContent } from "@/components/content-provider";
 
 export function Footer() {
