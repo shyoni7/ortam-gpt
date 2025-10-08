@@ -13,8 +13,8 @@ import type { AppLocale } from "@/i18n/request";
 import type {
   GalleryImage,
   LocaleSiteContent,
-  LocaleSiteContentHomePillar,
-  LocaleSiteContentProgram,
+  HomePillar,
+  AcademyProgram,
 } from "@/content/types";
 import { deepClone, useSiteContent } from "@/components/content-provider";
 
@@ -85,7 +85,7 @@ export default function AdminPage() {
     });
   }
 
-  function updatePillar(index: number, value: Partial<LocaleSiteContentHomePillar>) {
+  function updatePillar(index: number, value: Partial<HomePillar>) {
     updateDraft((prev) => {
       prev.home.pillars[index] = { ...prev.home.pillars[index], ...value };
       return prev;
@@ -129,7 +129,7 @@ export default function AdminPage() {
     });
   }
 
-  function updateProgram(index: number, value: Partial<LocaleSiteContentProgram>) {
+  function updateProgram(index: number, value: Partial<AcademyProgram>) {
     updateDraft((prev) => {
       prev.academy.programs[index] = { ...prev.academy.programs[index], ...value };
       return prev;
@@ -480,30 +480,38 @@ export default function AdminPage() {
             }
           />
         </Field>
-        <Divider label={activeLocale === "he" ? "תהליך" : "Process"} />
-        <Field label={activeLocale === "he" ? "כותרת" : "Title"}>
-          <Input
-            value={draft.incubator.process.title}
-            onChange={(event) =>
-              updateDraft((prev) => {
-                prev.incubator.process.title = event.target.value;
-                return prev;
-              })
-            }
-          />
-        </Field>
-        <Field label={activeLocale === "he" ? "שלבים" : "Steps"}>
-          <Textarea
-            value={draft.incubator.process.steps.join("\n")}
-            onChange={(event) =>
-              updateDraft((prev) => {
-                prev.incubator.process.steps = event.target.value.split("\n");
-                return prev;
-              })
-            }
-            hint={activeLocale === "he" ? "כל שלב בשורה נפרדת" : "One step per line"}
-          />
-        </Field>
+        <Divider label={activeLocale === "he" ? "שלבי התהליך" : "Process stages"} />
+        <div className="grid gap-4">
+          {draft.incubator.stages.map((stage, index) => (
+            <div key={`${stage.title}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+              <SectionTitle>
+                {activeLocale === "he" ? `שלב ${index + 1}` : `Stage ${index + 1}`}
+              </SectionTitle>
+              <Field label={activeLocale === "he" ? "כותרת" : "Title"}>
+                <Input
+                  value={stage.title}
+                  onChange={(event) =>
+                    updateDraft((prev) => {
+                      prev.incubator.stages[index].title = event.target.value;
+                      return prev;
+                    })
+                  }
+                />
+              </Field>
+              <Field label={activeLocale === "he" ? "תיאור" : "Description"}>
+                <Textarea
+                  value={stage.description}
+                  onChange={(event) =>
+                    updateDraft((prev) => {
+                      prev.incubator.stages[index].description = event.target.value;
+                      return prev;
+                    })
+                  }
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
         <Divider label={activeLocale === "he" ? "השמה" : "Placement"} />
         <Field label={activeLocale === "he" ? "כותרת" : "Title"}>
           <Input
@@ -527,8 +535,22 @@ export default function AdminPage() {
             }
           />
         </Field>
+        <Field label={activeLocale === "he" ? "כותרת בלוק מעסיקים" : "Employers heading"}>
+          <Input
+            value={draft.placement.employersTitle}
+            onChange={(event) =>
+              updateDraft((prev) => {
+                prev.placement.employersTitle = event.target.value;
+                return prev;
+              })
+            }
+          />
+        </Field>
         <Divider label={activeLocale === "he" ? "יתרונות" : "Benefits"} />
-        <Field label={activeLocale === "he" ? "מעסיקים" : "Employers"}>
+        <Field
+          label={activeLocale === "he" ? "מעסיקים" : "Employers"}
+          hint={activeLocale === "he" ? "כל יתרון בשורה" : "One benefit per line"}
+        >
           <Textarea
             value={draft.placement.employers.join("\n")}
             onChange={(event) =>
@@ -537,10 +559,23 @@ export default function AdminPage() {
                 return prev;
               })
             }
-            hint={activeLocale === "he" ? "כל יתרון בשורה" : "One benefit per line"}
           />
         </Field>
-        <Field label={activeLocale === "he" ? "מועמדים" : "Candidates"}>
+        <Field label={activeLocale === "he" ? "כותרת בלוק מועמדים" : "Candidates heading"}>
+          <Input
+            value={draft.placement.candidatesTitle}
+            onChange={(event) =>
+              updateDraft((prev) => {
+                prev.placement.candidatesTitle = event.target.value;
+                return prev;
+              })
+            }
+          />
+        </Field>
+        <Field
+          label={activeLocale === "he" ? "מועמדים" : "Candidates"}
+          hint={activeLocale === "he" ? "כל יתרון בשורה" : "One benefit per line"}
+        >
           <Textarea
             value={draft.placement.candidates.join("\n")}
             onChange={(event) =>
@@ -549,7 +584,6 @@ export default function AdminPage() {
                 return prev;
               })
             }
-            hint={activeLocale === "he" ? "כל יתרון בשורה" : "One benefit per line"}
           />
         </Field>
       </SectionContainer>
