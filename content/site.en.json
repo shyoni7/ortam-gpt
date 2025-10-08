@@ -1,0 +1,146 @@
+{
+  "brandName": "ORTAM AI",
+  "navigation": {
+    "header": {
+      "items": [
+        { "title": "Home", "path": "", "order": 0 },
+        { "title": "About", "path": "/about", "order": 1 },
+        { "title": "Academy", "path": "/academy", "order": 2 },
+        { "title": "Incubator", "path": "/incubator", "order": 3 },
+        { "title": "Placement", "path": "/placement", "order": 4 },
+        { "title": "Contact", "path": "/contact", "order": 5 }
+      ]
+    },
+    "footer": {
+      "items": [
+        { "title": "About", "path": "/about", "order": 0 },
+        { "title": "Blog", "path": "/blog", "order": 1 },
+        { "title": "Privacy", "path": "/privacy", "order": 2 },
+        { "title": "Terms", "path": "/terms", "order": 3 }
+      ],
+      "legal": "© 2024 ORTAM AI. All rights reserved."
+    }
+  },
+  "meta": {
+    "titleTemplate": "%s | ORTAM AI",
+    "description": "ORTAM AI – incubator, academy, and placement hub accelerating AI adoption."
+  },
+  "pages": {
+    "home": {
+      "slug": "home",
+      "title": "We bridge legacy organizations into the AI era",
+      "subtitle": "Incubator, Academy, and Placement services united under one platform.",
+      "body": "We partner with municipalities, colleges, and enterprises to deliver measurable AI adoption with accountable governance.",
+      "hero": {
+        "url": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWRlNjQycDk5OG81MGo5NWp2dWF3cWFoc3Z3dWNpMzUwMG5tbnFjYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlOvJ7yaacpuSas/giphy.gif",
+        "alt": "Animated hero visual showing layered AI systems"
+      },
+      "gallery": [
+        {
+          "url": "https://placehold.co/600x400/111827/06B6D4?text=Incubator",
+          "alt": "Innovation workshop inside the incubator"
+        },
+        {
+          "url": "https://placehold.co/600x400/111827/F472B6?text=Academy",
+          "alt": "Academy cohort collaborating"
+        },
+        {
+          "url": "https://placehold.co/600x400/111827/E5E7EB?text=Placement",
+          "alt": "Placement mentors with apprentices"
+        }
+      ],
+      "cta": {
+        "primaryLabel": "Book a call",
+        "primaryHref": "/contact",
+        "secondaryLabel": "Explore more",
+        "secondaryHref": "/about"
+      }
+    },
+    "about": {
+      "slug": "about",
+      "title": "About ORTAM AI",
+      "body": "ORTAM AI helps public sector and education leaders unlock the promise of responsible AI.\n\nWe deliver an end-to-end playbook that combines incubation, enablement, and workforce development.\n\nOur cross-functional team brings experience from smart cities, academia, and startups to de-risk innovation.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/E5E7EB?text=ORTAM+AI",
+        "alt": "ORTAM AI team collaborating"
+      }
+    },
+    "academy": {
+      "slug": "academy",
+      "title": "Flagship Academy Programs",
+      "subtitle": "Role-tailored curricula designed to create AI-first teams in weeks.",
+      "body": "Each track blends expert faculty, real-world labs, and an evolving resource library to ensure lasting adoption.",
+      "programs": [
+        {
+          "title": "Prompt Engineering for Innovation Leads",
+          "description": "Hands-on labs for governing generative AI and designing enterprise prompts.",
+          "sessionsLabel": "4 sessions",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/06B6D4?text=Prompt",
+            "alt": "Prompt engineering course illustration"
+          }
+        },
+        {
+          "title": "Operational AI Agents",
+          "description": "Train technical squads to deploy automations, integrations, and SOPs.",
+          "sessionsLabel": "6 sessions",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/F472B6?text=Agents",
+            "alt": "AI agents course illustration"
+          }
+        },
+        {
+          "title": "HR + AI for People Teams",
+          "description": "Toolkits for recruitment, learning, and engagement augmented by AI.",
+          "sessionsLabel": "5 sessions",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/38BDF8?text=HR",
+            "alt": "HR and AI program illustration"
+          }
+        },
+        {
+          "title": "AI Literacy for Educators",
+          "description": "Parent-teacher-student model for equitable AI adoption in schools.",
+          "sessionsLabel": "One term",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/FB7185?text=Edu",
+            "alt": "Educators AI literacy illustration"
+          }
+        }
+      ]
+    },
+    "incubator": {
+      "slug": "incubator",
+      "title": "Incubator Journey",
+      "subtitle": "Accelerate AI initiatives from discovery to scale with co-creation and guided pilots.",
+      "body": "**Our path:**\n\n1. Discovery & Alignment – assess needs, data readiness, and define measurable KPIs.\n2. MVP / POC Build – deliver prototypes, integrate systems, and validate impact.\n3. Guided Pilot – launch with real stakeholders, capture insights, and iterate.\n4. Scale & Enablement – transition to full operations with governance and training.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/06B6D4?text=Incubator",
+        "alt": "Strategy session with ORTAM AI incubator"
+      }
+    },
+    "placement": {
+      "slug": "placement",
+      "title": "Placement & Apprenticeship",
+      "subtitle": "A dual-track model connecting academy graduates with employers building AI capabilities.",
+      "body": "**For employers**\n\n- Pre-vetted talent aligned to your AI roadmap.\n- Onboarding and mentorship delivered by ORTAM AI coaches.\n- Performance dashboards and retention support.\n\n**For candidates**\n\n- Hands-on apprenticeships inside live AI programs.\n- Personal mentorship and portfolio development.\n- Placements with municipalities, colleges, and enterprise partners.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/F472B6?text=Placement",
+        "alt": "Mentors working with apprentices"
+      }
+    },
+    "contact": {
+      "slug": "contact",
+      "title": "Let's connect",
+      "subtitle": "Tell us about your priorities and we'll tailor the next step together.",
+      "address": "Tel Aviv-Yafo, Israel",
+      "phone": "+972-3-123-4567",
+      "email": "team@ortam.ai",
+      "contactForm": {
+        "enabled": true,
+        "submitLabel": "Send",
+        "successMessage": "Thanks for reaching out! We'll respond within one business day."
+      }
+    }
+  }
+}

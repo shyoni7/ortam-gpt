@@ -1,0 +1,146 @@
+{
+  "brandName": "ORTAM AI",
+  "navigation": {
+    "header": {
+      "items": [
+        { "title": "בית", "path": "", "order": 0 },
+        { "title": "עלינו", "path": "/about", "order": 1 },
+        { "title": "האקדמיה", "path": "/academy", "order": 2 },
+        { "title": "חממה", "path": "/incubator", "order": 3 },
+        { "title": "השמה", "path": "/placement", "order": 4 },
+        { "title": "צור קשר", "path": "/contact", "order": 5 }
+      ]
+    },
+    "footer": {
+      "items": [
+        { "title": "עלינו", "path": "/about", "order": 0 },
+        { "title": "בלוג", "path": "/blog", "order": 1 },
+        { "title": "מדיניות פרטיות", "path": "/privacy", "order": 2 },
+        { "title": "תנאי שימוש", "path": "/terms", "order": 3 }
+      ],
+      "legal": "© 2024 ORTAM AI. כל הזכויות שמורות."
+    }
+  },
+  "meta": {
+    "titleTemplate": "%s | ORTAM AI",
+    "description": "ORTAM AI – חממה טכנולוגית, מרכז הדרכה ומרכז השמה לעולמות ה-AI בישראל."
+  },
+  "pages": {
+    "home": {
+      "slug": "home",
+      "title": "אנחנו הגשר בין העולם הישן לעולם מבוסס AI",
+      "subtitle": "חממה טכנולוגית, מרכז הדרכה ומערך השמה תחת קורת גג אחת.",
+      "body": "אנחנו שותפי הצמיחה של עיריות, מוסדות חינוך וארגונים שרוצים ליישם AI במהירות, בביטחון ובהלימה לערכים שלהם.",
+      "hero": {
+        "url": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWRlNjQycDk5OG81MGo5NWp2dWF3cWFoc3Z3dWNpMzUwMG5tbnFjYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlOvJ7yaacpuSas/giphy.gif",
+        "alt": "הדמיה אנימטיבית של סביבות AI בצבעי ORTAM"
+      },
+      "gallery": [
+        {
+          "url": "https://placehold.co/600x400/111827/06B6D4?text=%D7%97%D7%9E%D7%9E%D7%94",
+          "alt": "מצגת השראה בחממה"
+        },
+        {
+          "url": "https://placehold.co/600x400/111827/F472B6?text=%D7%90%D7%A7%D7%93%D7%9E%D7%99%D7%94",
+          "alt": "כיתה פעילה בתוכנית האקדמיה"
+        },
+        {
+          "url": "https://placehold.co/600x400/111827/E5E7EB?text=%D7%94%D7%A9%D7%9E%D7%94",
+          "alt": "מנטורים ומועמדים במרכז ההשמה"
+        }
+      ],
+      "cta": {
+        "primaryLabel": "תיאום שיחה",
+        "primaryHref": "/contact",
+        "secondaryLabel": "גלו עוד",
+        "secondaryHref": "/about"
+      }
+    },
+    "about": {
+      "slug": "about",
+      "title": "על ORTAM AI",
+      "body": "ORTAM AI הוקמה כדי להנגיש חדשנות AI לכל רשות, מוסד וארגון בישראל.\n\nאנחנו משלבים טכנולוגיה, חינוך והכשרות בתוך מעטפת אחת שמייצרת תוצאות מדידות.\n\nהצוות שלנו מגיע מעולמות של עיריות חכמות, אקדמיה וסטארט-אפים ומוביל שינוי מעשי.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/E5E7EB?text=ORTAM+AI",
+        "alt": "צוות ORTAM AI בפעולה"
+      }
+    },
+    "academy": {
+      "slug": "academy",
+      "title": "תוכניות הדגל של האקדמיה",
+      "subtitle": "תוכניות מותאמות תפקידים שמביאות את הצוותים שלכם לרמת תפקוד AI-first תוך שבועות ספורים.",
+      "body": "המסלולים שלנו משלבים מרצים מומחים, תרגול חי וספריית משאבים מתעדכנת כדי להבטיח אימפקט מהיר.",
+      "programs": [
+        {
+          "title": "Prompt Engineering למקדמי חדשנות",
+          "description": "סדנאות מעשיות לשימוש נכון במודלים גנרטיביים והגדרת פרוטוקולים בארגון.",
+          "sessionsLabel": "4 מפגשים",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/06B6D4?text=Prompt",
+            "alt": "איור של תוכנית Prompt Engineering"
+          }
+        },
+        {
+          "title": "בניית סוכני AI תפעוליים",
+          "description": "הכשרה לצוותים טכניים בבניית אוטומציות, אינטגרציות ו-SOP לניהול סוכנים.",
+          "sessionsLabel": "6 מפגשים",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/F472B6?text=Agents",
+            "alt": "איור של סוכני AI בפעולה"
+          }
+        },
+        {
+          "title": "HR + AI לניהול ההון האנושי",
+          "description": "כלי מיון, הדרכה ותמיכה מבוססי AI עבור משאבי אנוש וצוותי למידה.",
+          "sessionsLabel": "5 מפגשים",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/38BDF8?text=HR",
+            "alt": "איור של צוות HR דיגיטלי"
+          }
+        },
+        {
+          "title": "אוריינות AI למורים ותלמידים",
+          "description": "מודל הורה-מורה-תלמיד להטמעת AI בבתי ספר ובקהילות חינוך.",
+          "sessionsLabel": "סמסטר אחד",
+          "image": {
+            "url": "https://placehold.co/320x200/0F172A/FB7185?text=Edu",
+            "alt": "איור של מרחב למידה חדשני"
+          }
+        }
+      ]
+    },
+    "incubator": {
+      "slug": "incubator",
+      "title": "מסלול החממה",
+      "subtitle": "מניעים פרויקטים מבוססי AI מקונספט ועד סקייל בתוך חודשים.",
+      "body": "**המסע שלנו:**\n\n1. Discovery & התאמה – מיפוי צרכים, תשתיות נתונים והגדרת KPIs.\n2. פיתוח MVP / POC – בניית פתרון ראשוני, חיבור למערכות ומדידת ערך.\n3. Pilot מודרך – הטמעת שימוש אמיתי עם צוותי המפתח והפקת מסקנות.\n4. Scale & Enablement – התרחבות לכלל הארגון והעברת הידע פנימה.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/06B6D4?text=Incubator",
+        "alt": "צוות חממה בתהליך חשיבה"
+      }
+    },
+    "placement": {
+      "slug": "placement",
+      "title": "השמה ואפרנטיסשיפ",
+      "subtitle": "מסלול דו-כיווני שמחבר בוגרי הכשרות לארגונים שבונים יכולות AI.",
+      "body": "**למעסיקים**\n\n- איתור מועמדים שנבחנו בתרחישים אמיתיים.\n- חניכה ו-Onboarding מונחים בידי צוות ORTAM AI.\n- מדדי ביצוע ותוכניות שימור ברורות.\n\n**למועמדים**\n\n- מסלולי התמחות במיזמי AI חיים.\n- Mentorship צמוד ובניית פורטפוליו.\n- אפשרויות השמה בעיריות, מכללות וארגונים מובילים.",
+      "hero": {
+        "url": "https://placehold.co/1200x600/0B1220/F472B6?text=Placement",
+        "alt": "מנטורים ומועמדים בשיחה"
+      }
+    },
+    "contact": {
+      "slug": "contact",
+      "title": "דברו איתנו",
+      "subtitle": "נשמח ללמוד על האתגרים שלכם ולבנות פתרון מותאם.",
+      "address": "תל אביב-יפו, ישראל",
+      "phone": "+972-3-123-4567",
+      "email": "team@ortam.ai",
+      "contactForm": {
+        "enabled": true,
+        "submitLabel": "שליחה",
+        "successMessage": "הטופס נשלח בהצלחה! נחזור אליכם תוך 24 שעות."
+      }
+    }
+  }
+}
