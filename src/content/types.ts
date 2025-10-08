@@ -1,102 +1,81 @@
-import type { AppLocale } from "@/i18n/request";
+export type Locale = "he" | "en";
 
-export type NavigationLink = {
-  key: string;
-  path: string;
-  label: string;
-};
-
-export type HomePillar = {
-  key: string;
-  title: string;
-  description: string;
-  path: string;
-};
-
-export type GalleryImage = {
-  src: string;
+export interface ImageItem {
+  url: string;
   alt: string;
-};
+}
 
-export type HeroContent = {
-  eyebrow: string;
-  heading: string;
-  subheading: string;
-  description: string;
-  primaryCta: { label: string; path: string };
-  secondaryCta: { label: string; path: string };
-  media: { src: string; alt: string };
-  gallery: GalleryImage[];
-  pillars: HomePillar[];
-};
-
-export type AboutContent = {
+export interface PageCommon {
+  slug: string;
   title: string;
-  paragraphs: string[];
-};
+  subtitle?: string;
+  body?: string;
+  hero?: ImageItem;
+  gallery?: ImageItem[];
+}
 
-export type AcademyProgram = {
-  key: string;
+export interface Program {
   title: string;
   description: string;
-  duration: string;
-  image: { src: string; alt: string };
-};
+  sessionsLabel?: string;
+  image?: ImageItem;
+}
 
-export type AcademyContent = {
-  title: string;
-  description: string;
-  programs: AcademyProgram[];
-};
-
-export type IncubatorContent = {
-  title: string;
-  description: string;
-  stages: { title: string; description: string }[];
-};
-
-export type PlacementContent = {
-  title: string;
-  description: string;
-  employersTitle: string;
-  employers: string[];
-  candidatesTitle: string;
-  candidates: string[];
-};
-
-export type ContactContent = {
-  title: string;
-  description: string;
-  fields: {
-    name: string;
-    email: string;
-    message: string;
-    submit: string;
+export interface HomePageContent extends PageCommon {
+  cta?: {
+    primaryLabel?: string;
+    primaryHref?: string;
+    secondaryLabel?: string;
+    secondaryHref?: string;
   };
-  successMessage: string;
-  errorMessage: string;
-};
+}
 
-export type FooterContent = {
-  rights: string;
-  contact: string;
-};
+export interface AboutPageContent extends PageCommon {}
+export interface AcademyPageContent extends PageCommon {
+  programs?: Program[];
+}
+export interface IncubatorPageContent extends PageCommon {}
+export interface PlacementPageContent extends PageCommon {}
 
-export type NavigationContent = {
-  brand: string;
-  links: NavigationLink[];
-  languageSwitchLabel: string;
-};
+export interface ContactFormConfig {
+  enabled?: boolean;
+  submitLabel?: string;
+  successMessage?: string;
+}
 
-export type LocaleSiteContent = {
-  navigation: NavigationContent;
-  home: HeroContent;
-  about: AboutContent;
-  academy: AcademyContent;
-  incubator: IncubatorContent;
-  placement: PlacementContent;
-  contact: ContactContent;
-  footer: FooterContent;
-};
+export interface ContactPageContent extends PageCommon {
+  address?: string;
+  phone?: string;
+  email?: string;
+  contactForm?: ContactFormConfig;
+}
 
-export type SiteContent = Record<AppLocale, LocaleSiteContent>;
+export interface NavItem {
+  title: string;
+  path: string;
+  order: number;
+}
+
+export interface Navigation {
+  header: { items: NavItem[] };
+  footer: { items: NavItem[]; legal?: string };
+}
+
+export interface MetaDefaults {
+  titleTemplate?: string;
+  description?: string;
+}
+
+export interface SiteContent {
+  brandName: string;
+  navigation: Navigation;
+  meta?: MetaDefaults;
+  pages: {
+    home: HomePageContent;
+    about: AboutPageContent;
+    academy: AcademyPageContent;
+    incubator: IncubatorPageContent;
+    placement: PlacementPageContent;
+    contact: ContactPageContent;
+  };
+}

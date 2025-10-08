@@ -4,36 +4,53 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { LocaleAttributes } from "@/components/locale-attributes";
-import { ContentProvider } from "@/components/content-provider";
 import { resolveLocale, locales, dirForLocale } from "@/i18n/request";
+import { getSiteContent } from "@/lib/content";
 
-type LayoutProps = {
-  children: ReactNode;
+type LayoutParams = {
   params: { locale: string };
 };
 
-export const metadata: Metadata = {
-  title: "ORTAM AI – המרכז לפיתוח AI",
-  description:
-    "אתר תדמית דו-לשוני ל-ORTAM AI המציג את החממה, האקדמיה ומרכז ההשמה עם תמיכה ב-RTL/LTR.",
+type LayoutProps = LayoutParams & {
+  children: ReactNode;
 };
+
+function applyTitleTemplate(title: string, template?: string) {
+  if (template && template.includes("%s")) {
+    return template.replace("%s", title);
+  }
+  return title || "ORTAM AI";
+}
+
+export async function generateMetadata({ params }: LayoutParams): Promise<Metadata> {
+  const locale = resolveLocale(params.locale);
+  if (!locale) {
+    return {};
+  }
+  const content = await getSiteContent(locale);
+  const homeTitle = content.pages.home.title;
+  const title = applyTitleTemplate(homeTitle, content.meta?.titleTemplate);
+  return {
+    title,
+    description: content.meta?.description,
+  };
+}
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export default function LocaleLayout({ children, params }: LayoutProps) {
+export default async function LocaleLayout({ children, params }: LayoutProps) {
   const locale = resolveLocale(params.locale) ?? notFound();
+  const content = await getSiteContent(locale);
   return (
     <>
       <LocaleAttributes locale={locale} />
-      <ContentProvider locale={locale}>
-        <div className="flex min-h-screen flex-col" lang={locale} dir={dirForLocale(locale)}>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </div>
-      </ContentProvider>
+      <div className="flex min-h-screen flex-col" lang={locale} dir={dirForLocale(locale)}>
+        <Header locale={locale} brandName={content.brandName} navigation={content.navigation} />
+        <main>{children}</main>
+        <Footer locale={locale} navigation={content.navigation} contact={content.pages.contact} />
+      </div>
     </>
   );
 }
