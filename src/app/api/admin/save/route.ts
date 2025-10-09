@@ -96,12 +96,14 @@ export async function POST(request: Request) {
 
   try {
     assertValidSiteContent(content);
+    const runningOnVercel = process.env.VERCEL === "1";
     let sha: string | undefined;
-    if (process.env.NODE_ENV === "production") {
+    if (runningOnVercel) {
       sha = await writeToGithub(locale, content);
       setSiteContent(locale, content);
     } else {
       await writeSiteContent(locale, content);
+      setSiteContent(locale, content);
       sha = "local";
     }
     return NextResponse.json({ ok: true, sha });
