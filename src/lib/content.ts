@@ -1,7 +1,7 @@
 import { cache } from "react";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { siteContentSchema } from "@/content/schema";
+import { assertValidSiteContent, parseSiteContent } from "@/content/schema";
 import type { Locale, SiteContent } from "@/content/types";
 
 const contentCache = new Map<Locale, SiteContent>();
@@ -21,8 +21,9 @@ async function loadFromDisk(locale: Locale): Promise<SiteContent> {
   const filePath = contentFilePath(locale);
   const file = await fs.readFile(filePath, "utf8");
   const parsed = JSON.parse(file);
-  const validated = siteContentSchema.parse(parsed);
-  return validated;
+  const siteContent = parseSiteContent(parsed);
+  assertValidSiteContent(siteContent);
+  return siteContent;
 }
 
 const loadContent = cache(async (locale: Locale) => {
@@ -30,8 +31,9 @@ const loadContent = cache(async (locale: Locale) => {
     return contentCache.get(locale)!;
   }
   const data = await loadFromDisk(locale);
-  contentCache.set(locale, data);
-  return data;
+  const snapshot = clone(data);
+  contentCache.set(locale, snapshot);
+  return snapshot;
 });
 
 export async function getSiteContent(locale: Locale): Promise<SiteContent> {
@@ -40,15 +42,15 @@ export async function getSiteContent(locale: Locale): Promise<SiteContent> {
 }
 
 export function setSiteContent(locale: Locale, data: SiteContent) {
-  const validated = siteContentSchema.parse(data);
-  contentCache.set(locale, validated);
+  assertValidSiteContent(data);
+  contentCache.set(locale, clone(data));
 }
 
 export async function writeSiteContent(locale: Locale, data: SiteContent) {
-  const validated = siteContentSchema.parse(data);
+  assertValidSiteContent(data);
   const filePath = contentFilePath(locale);
-  await fs.writeFile(filePath, JSON.stringify(validated, null, 2));
-  contentCache.set(locale, validated);
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+  contentCache.set(locale, clone(data));
 }
 
 export function clearSiteContentCache(locale?: Locale) {

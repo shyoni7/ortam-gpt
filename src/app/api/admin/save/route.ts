@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { siteContentSchema, localeSchema } from "@/content/schema";
+import { assertValidSiteContent, isLocale, parseSiteContent, validateSiteContent } from "@/content/schema";
 import type { Locale, SiteContent } from "@/content/types";
 import { setSiteContent, writeSiteContent } from "@/lib/content";
 
@@ -73,25 +73,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "בקשה אינה חוקית" }, { status: 400 });
   }
 
-  const localeParse = localeSchema.safeParse((payload as any)?.locale);
-  if (!localeParse.success) {
+  const localeValue = (payload as any)?.locale;
+  if (!isLocale(localeValue)) {
     return NextResponse.json({ error: "שפה לא נתמכת" }, { status: 400 });
   }
-  const locale = localeParse.data;
+  const locale = localeValue;
 
-  const contentParse = siteContentSchema.safeParse((payload as any)?.data);
-  if (!contentParse.success) {
-    return NextResponse.json({ error: "נתוני תוכן אינם תקינים", details: contentParse.error.flatten() }, { status: 400 });
+  let content: SiteContent;
+  try {
+    content = parseSiteContent((payload as any)?.data);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "נתוני תוכן אינם תקינים", details: error instanceof Error ? error.message : String(error) },
+      { status: 400 }
+    );
   }
-  const validated = contentParse.data;
+
+  const validationErrors = validateSiteContent(content);
+  if (Object.keys(validationErrors).length > 0) {
+    return NextResponse.json({ error: "נתוני תוכן אינם תקינים", details: validationErrors }, { status: 400 });
+  }
 
   try {
+    assertValidSiteContent(content);
     let sha: string | undefined;
     if (process.env.NODE_ENV === "production") {
-      sha = await writeToGithub(locale, validated);
-      setSiteContent(locale, validated);
+      sha = await writeToGithub(locale, content);
+      setSiteContent(locale, content);
     } else {
-      await writeSiteContent(locale, validated);
+      await writeSiteContent(locale, content);
       sha = "local";
     }
     return NextResponse.json({ ok: true, sha });

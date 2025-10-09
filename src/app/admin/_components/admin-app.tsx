@@ -1,17 +1,18 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
-  FormProvider,
-  useForm,
-  useFieldArray,
-  useFormContext,
-  type FieldPath,
-} from "react-hook-form";
-import { zodResolver } from "@/lib/zod-resolver";
+  FormEvent,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
-import { siteContentSchema } from "@/content/schema";
-import type { Locale, SiteContent } from "@/content/types";
+import { validateSiteContent } from "@/content/schema";
+import type { ImageItem, Locale, Program, SiteContent } from "@/content/types";
 import { locales as supportedLocales } from "@/i18n/request";
 
 const localeLabels: Record<Locale, string> = {
@@ -134,12 +135,6 @@ function escapeAttribute(value: string) {
   return value.replace(/"/g, '\\"');
 }
 
-type AdminAppProps = {
-  initialContent: Record<Locale, SiteContent>;
-};
-
-type ToastState = { type: "success" | "error"; message: string } | null;
-
 function clone<T>(value: T): T {
   if (typeof structuredClone === "function") {
     return structuredClone(value);
@@ -151,6 +146,74 @@ function getValue(object: unknown, path: string) {
   return path.split(".").reduce<any>((acc, key) => (acc == null ? acc : acc[key]), object as any);
 }
 
+function isIndexSegment(segment: string) {
+  return /^\d+$/.test(segment);
+}
+
+function setDeepValue(target: any, path: string, value: unknown) {
+  const segments = path.split(".");
+  let current = target;
+  for (let i = 0; i < segments.length; i += 1) {
+    const segment = segments[i];
+    const last = i === segments.length - 1;
+    if (last) {
+      if (isIndexSegment(segment)) {
+        if (!Array.isArray(current)) {
+          throw new Error(`Expected array for segment ${segment} in path ${path}`);
+        }
+        current[Number(segment)] = value;
+      } else {
+        current[segment] = value;
+      }
+      return;
+    }
+    const nextSegment = segments[i + 1];
+    const nextIsIndex = isIndexSegment(nextSegment);
+    if (isIndexSegment(segment)) {
+      const index = Number(segment);
+      if (!Array.isArray(current)) {
+        throw new Error(`Expected array for segment ${segment} in path ${path}`);
+      }
+      if (current[index] == null) {
+        current[index] = nextIsIndex ? [] : {};
+      }
+      current = current[index];
+    } else {
+      if (current[segment] == null) {
+        current[segment] = nextIsIndex ? [] : {};
+      } else if (nextIsIndex && !Array.isArray(current[segment])) {
+        current[segment] = [];
+      } else if (!nextIsIndex && (typeof current[segment] !== "object" || current[segment] === null)) {
+        current[segment] = {};
+      }
+      current = current[segment];
+    }
+  }
+}
+
+type AdminAppProps = {
+  initialContent: Record<Locale, SiteContent>;
+};
+
+type ToastState = { type: "success" | "error"; message: string } | null;
+
+type AdminFormContextValue = {
+  values: SiteContent;
+  setFieldValue: (path: string, value: unknown) => void;
+  clearErrors: (path: string, includeChildren?: boolean) => void;
+  errors: Record<string, string>;
+};
+
+const AdminFormContext = createContext<AdminFormContextValue | null>(null);
+
+function useAdminForm() {
+  const context = useContext(AdminFormContext);
+  if (!context) {
+    throw new Error("Admin form context is unavailable");
+  }
+  return context;
+}
+
 export function AdminApp({ initialContent }: AdminAppProps) {
   const [activeLocale, setActiveLocale] = useState<Locale>("he");
   const [activeSection, setActiveSection] = useState<SectionKey>("global.brand");
@@ -159,37 +222,18 @@ export function AdminApp({ initialContent }: AdminAppProps) {
   const [saving, setSaving] = useState(false);
   const [dirtyLocales, setDirtyLocales] = useState<Set<Locale>>(new Set());
   const [pendingFocus, setPendingFocus] = useState<{ label: string; path?: string } | null>(null);
+  const [formValues, setFormValues] = useState<SiteContent>(() => clone(initialContent.he));
+  const [errorMap, setErrorMap] = useState<Record<Locale, Record<string, string>>>(
+    Object.fromEntries(supportedLocales.map((locale) => [locale as Locale, {}])) as Record<Locale, Record<string, string>>
+  );
 
   const initialRef = useRef<Record<Locale, SiteContent>>(clone(initialContent));
   const draftsRef = useRef<Record<Locale, SiteContent>>(clone(initialContent));
 
-  const form = useForm<SiteContent>({
-    resolver: zodResolver(siteContentSchema),
-    mode: "onChange",
-    defaultValues: clone(initialContent[activeLocale]),
-  });
-
   useEffect(() => {
-    form.reset(clone(draftsRef.current[activeLocale]));
-  }, [activeLocale, form]);
-
-  useEffect(() => {
-    const subscription = form.watch(() => {
-      const nextValues = form.getValues();
-      draftsRef.current[activeLocale] = clone(nextValues);
-      const isDirty = JSON.stringify(nextValues) !== JSON.stringify(initialRef.current[activeLocale]);
-      setDirtyLocales((prev) => {
-        const next = new Set(prev);
-        if (isDirty) {
-          next.add(activeLocale);
-        } else {
-          next.delete(activeLocale);
-        }
-        return next;
-      });
-    });
-    return () => subscription.unsubscribe();
-  }, [form, activeLocale]);
+    setFormValues(clone(draftsRef.current[activeLocale]));
+    setErrorMap((prev) => ({ ...prev, [activeLocale]: {} }));
+  }, [activeLocale]);
 
   useEffect(() => {
     if (!toast) return;
@@ -256,6 +300,61 @@ export function AdminApp({ initialContent }: AdminAppProps) {
     return () => window.cancelAnimationFrame(frame);
   }, [pendingFocus, activeSection]);
 
+  const clearFieldErrors = useCallback(
+    (path: string, includeChildren = false) => {
+      setErrorMap((prev) => {
+        const localeErrors = prev[activeLocale] ?? {};
+        const keys = Object.keys(localeErrors).filter((key) =>
+          includeChildren ? key === path || key.startsWith(`${path}.`) : key === path
+        );
+        if (keys.length === 0) {
+          return prev;
+        }
+        const nextErrors = { ...localeErrors };
+        keys.forEach((key) => delete nextErrors[key]);
+        return { ...prev, [activeLocale]: nextErrors };
+      });
+    },
+    [activeLocale]
+  );
+
+  const updateFormValues = useCallback(
+    (mutator: (draft: SiteContent) => void) => {
+      setFormValues((current) => {
+        const next = clone(current);
+        mutator(next);
+        draftsRef.current[activeLocale] = clone(next);
+        const baseline = initialRef.current[activeLocale];
+        const dirty = JSON.stringify(next) !== JSON.stringify(baseline);
+        setDirtyLocales((prev) => {
+          const nextSet = new Set(prev);
+          if (dirty) {
+            nextSet.add(activeLocale);
+          } else {
+            nextSet.delete(activeLocale);
+          }
+          return nextSet;
+        });
+        return next;
+      });
+    },
+    [activeLocale]
+  );
+
+  const setFieldValue = useCallback(
+    (path: string, value: unknown) => {
+      updateFormValues((draft) => setDeepValue(draft as any, path, value));
+      clearFieldErrors(path);
+    },
+    [updateFormValues, clearFieldErrors]
+  );
+
+  function handleLocaleChange(nextLocale: Locale) {
+    if (nextLocale === activeLocale) return;
+    draftsRef.current[activeLocale] = clone(formValues);
+    setActiveLocale(nextLocale);
+  }
+
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const term = searchQuery.trim().toLowerCase();
@@ -271,27 +370,81 @@ export function AdminApp({ initialContent }: AdminAppProps) {
     setPendingFocus(match);
   }
 
-  async function persist(values: SiteContent) {
+  function resetField(path: string) {
+    const baselineValue = clone(getValue(initialRef.current[activeLocale], path));
+    updateFormValues((draft) => setDeepValue(draft as any, path, baselineValue));
+    clearFieldErrors(path, true);
+  }
+
+  function resetSection(section: SectionKey) {
+    const baseline = clone(initialRef.current[activeLocale]);
+    updateFormValues((draft) => {
+      switch (section) {
+        case "global.brand":
+          draft.brandName = baseline.brandName;
+          break;
+        case "global.header":
+          draft.navigation.header.items = clone(baseline.navigation.header.items);
+          break;
+        case "global.footer":
+          draft.navigation.footer.items = clone(baseline.navigation.footer.items);
+          draft.navigation.footer.legal = baseline.navigation.footer.legal;
+          break;
+        case "global.meta":
+          draft.meta = baseline.meta ? clone(baseline.meta) : undefined;
+          break;
+        case "pages.home":
+          draft.pages.home = clone(baseline.pages.home);
+          break;
+        case "pages.about":
+          draft.pages.about = clone(baseline.pages.about);
+          break;
+        case "pages.academy":
+          draft.pages.academy = clone(baseline.pages.academy);
+          break;
+        case "pages.incubator":
+          draft.pages.incubator = clone(baseline.pages.incubator);
+          break;
+        case "pages.placement":
+          draft.pages.placement = clone(baseline.pages.placement);
+          break;
+        case "pages.contact":
+          draft.pages.contact = clone(baseline.pages.contact);
+          break;
+      }
+    });
+    setErrorMap((prev) => ({ ...prev, [activeLocale]: {} }));
+  }
+
+  async function persist() {
+    const current = clone(formValues);
+    const validationErrors = validateSiteContent(current);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrorMap((prev) => ({ ...prev, [activeLocale]: validationErrors }));
+      setToast({ type: "error", message: "נתוני תוכן אינם תקינים" });
+      return;
+    }
     setSaving(true);
     try {
       const response = await fetch("/api/admin/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: activeLocale, data: values }),
+        body: JSON.stringify({ locale: activeLocale, data: current }),
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
         throw new Error(error?.error || "שמירה נכשלה");
       }
-      const snapshot = clone(values);
+      const snapshot = clone(current);
       draftsRef.current[activeLocale] = snapshot;
       initialRef.current[activeLocale] = snapshot;
-      form.reset(snapshot);
+      setFormValues(snapshot);
       setDirtyLocales((prev) => {
         const next = new Set(prev);
         next.delete(activeLocale);
         return next;
       });
+      setErrorMap((prev) => ({ ...prev, [activeLocale]: {} }));
       setToast({ type: "success", message: "השינויים נשמרו בהצלחה" });
     } catch (error) {
       console.error(error);
@@ -301,60 +454,15 @@ export function AdminApp({ initialContent }: AdminAppProps) {
     }
   }
 
-  function handleLocaleChange(nextLocale: Locale) {
-    if (nextLocale === activeLocale) return;
-    draftsRef.current[activeLocale] = clone(form.getValues());
-    setActiveLocale(nextLocale);
-  }
+  const errors = errorMap[activeLocale] ?? {};
 
-  function resetSection(section: SectionKey) {
-    const baseline = initialRef.current[activeLocale];
-    switch (section) {
-      case "global.brand":
-        form.setValue("brandName", baseline.brandName, { shouldDirty: false });
-        break;
-      case "global.header":
-        form.setValue("navigation.header.items", clone(baseline.navigation.header.items), { shouldDirty: false });
-        break;
-      case "global.footer":
-        form.setValue("navigation.footer.items", clone(baseline.navigation.footer.items), { shouldDirty: false });
-        form.setValue("navigation.footer.legal", baseline.navigation.footer.legal ?? "", { shouldDirty: false });
-        break;
-      case "global.meta":
-        form.setValue("meta.titleTemplate", baseline.meta?.titleTemplate ?? "", { shouldDirty: false });
-        form.setValue("meta.description", baseline.meta?.description ?? "", { shouldDirty: false });
-        break;
-      case "pages.home":
-        form.setValue("pages.home", clone(baseline.pages.home), { shouldDirty: false });
-        break;
-      case "pages.about":
-        form.setValue("pages.about", clone(baseline.pages.about), { shouldDirty: false });
-        break;
-      case "pages.academy":
-        form.setValue("pages.academy", clone(baseline.pages.academy), { shouldDirty: false });
-        break;
-      case "pages.incubator":
-        form.setValue("pages.incubator", clone(baseline.pages.incubator), { shouldDirty: false });
-        break;
-      case "pages.placement":
-        form.setValue("pages.placement", clone(baseline.pages.placement), { shouldDirty: false });
-        break;
-      case "pages.contact":
-        form.setValue("pages.contact", clone(baseline.pages.contact), { shouldDirty: false });
-        break;
-    }
-    draftsRef.current[activeLocale] = clone(form.getValues());
-  }
-
-  function resetField(path: string) {
-    const baseline = initialRef.current[activeLocale];
-    const baselineValue = clone(getValue(baseline, path));
-    form.setValue(path as FieldPath<SiteContent>, baselineValue, { shouldDirty: false });
-    draftsRef.current[activeLocale] = clone(form.getValues());
-  }
+  const contextValue = useMemo<AdminFormContextValue>(
+    () => ({ values: formValues, setFieldValue, clearErrors: clearFieldErrors, errors }),
+    [formValues, setFieldValue, clearFieldErrors, errors]
+  );
 
   return (
-    <FormProvider {...form}>
+    <AdminFormContext.Provider value={contextValue}>
       <div className="flex min-h-screen">
         <aside className="w-72 border-l border-slate-800 bg-slate-900/70 p-4">
           <form onSubmit={handleSearchSubmit} className="mb-4">
@@ -418,7 +526,7 @@ export function AdminApp({ initialContent }: AdminAppProps) {
               </button>
               <button
                 type="button"
-                onClick={() => persist(form.getValues())}
+                onClick={() => persist()}
                 disabled={saving || !localeDirty}
                 className="rounded-full bg-primary-500 px-5 py-2 text-sm font-semibold text-slate-950 transition-opacity hover:bg-primary-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -427,7 +535,7 @@ export function AdminApp({ initialContent }: AdminAppProps) {
             </div>
           </header>
           <main className="p-6">
-            <form className="space-y-8" onSubmit={form.handleSubmit(persist)}>
+            <form className="space-y-8" onSubmit={(event) => event.preventDefault()}>
               {activeSection === "global.brand" && <BrandSection resetField={resetField} />}
               {activeSection === "global.header" && <HeaderNavSection />}
               {activeSection === "global.footer" && <FooterNavSection resetField={resetField} />}
@@ -458,7 +566,7 @@ export function AdminApp({ initialContent }: AdminAppProps) {
           </div>
         )}
       </div>
-    </FormProvider>
+    </AdminFormContext.Provider>
   );
 }
 
@@ -466,7 +574,7 @@ type Resettable = { resetField: (path: string) => void };
 
 type FieldProps = {
   label: string;
-  name: FieldPath<SiteContent> | string;
+  name: string;
   resetField?: (path: string) => void;
   type?: string;
   textarea?: boolean;
@@ -474,15 +582,19 @@ type FieldProps = {
 };
 
 function Field({ label, name, resetField, type = "text", textarea, readOnly }: FieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<SiteContent>();
-  const error = getValue(errors, name)?.message as string | undefined;
-  const registration = register(name as any);
+  const { values, setFieldValue, clearErrors, errors } = useAdminForm();
+  const rawValue = getValue(values, name);
+  const value = type === "checkbox" ? Boolean(rawValue) : rawValue == null ? "" : String(rawValue);
+  const error = errors[name];
+  const fieldId = `field-${String(name).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
   const baseClassName =
     "mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-primary-400 focus:outline-none disabled:opacity-70";
-  const fieldId = `field-${String(name).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
+  function handleReset() {
+    resetField?.(name);
+    clearErrors(name, true);
+  }
+
   return (
     <div className="space-y-2" data-field-label={label} data-field-name={name}>
       <div className="flex items-center justify-between">
@@ -492,7 +604,7 @@ function Field({ label, name, resetField, type = "text", textarea, readOnly }: F
         {resetField && !readOnly && (
           <button
             type="button"
-            onClick={() => resetField(name as string)}
+            onClick={handleReset}
             className="text-[11px] font-semibold text-primary-200 transition-colors hover:text-primary-100"
           >
             איפוס שדה
@@ -501,17 +613,27 @@ function Field({ label, name, resetField, type = "text", textarea, readOnly }: F
       </div>
       {textarea ? (
         <textarea
-          {...registration}
           id={fieldId}
+          value={String(value)}
           readOnly={readOnly}
+          onChange={(event) => {
+            setFieldValue(name, event.target.value);
+            clearErrors(name);
+          }}
           className={`${baseClassName} min-h-[140px]`}
         />
       ) : (
         <input
-          {...registration}
           id={fieldId}
-          readOnly={readOnly}
           type={type}
+          readOnly={readOnly}
+          checked={type === "checkbox" ? Boolean(value) : undefined}
+          value={type === "checkbox" ? undefined : String(value)}
+          onChange={(event) => {
+            const nextValue = type === "checkbox" ? event.target.checked : event.target.value;
+            setFieldValue(name, nextValue);
+            clearErrors(name);
+          }}
           className={baseClassName}
         />
       )}
@@ -533,21 +655,30 @@ function BrandSection({ resetField }: Resettable) {
 }
 
 function HeaderNavSection() {
-  const form = useFormContext<SiteContent>();
-  const { fields, append, remove, move } = useFieldArray({ control: form.control, name: "navigation.header.items" });
+  const { values, setFieldValue, clearErrors } = useAdminForm();
+  const items = (getValue(values, "navigation.header.items") as Array<any>) ?? [];
 
   function addItem() {
-    append({ title: "", path: "", order: fields.length });
+    const next = [...items, { title: "", path: "", order: items.length }];
+    setFieldValue("navigation.header.items", next);
+    clearErrors("navigation.header.items", true);
+  }
+
+  function remove(index: number) {
+    const next = items.filter((_, idx) => idx !== index).map((item, idx) => ({ ...item, order: idx }));
+    setFieldValue("navigation.header.items", next);
+    clearErrors("navigation.header.items", true);
   }
 
   function reorder(index: number, direction: -1 | 1) {
     const target = index + direction;
-    if (target < 0 || target >= fields.length) return;
-    move(index, target);
-    const updated = form.getValues("navigation.header.items");
-    updated.forEach((item: any, idx: number) =>
-      form.setValue(`navigation.header.items.${idx}.order`, idx, { shouldDirty: true })
-    );
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const normalized = next.map((item, idx) => ({ ...item, order: idx }));
+    setFieldValue("navigation.header.items", normalized);
+    clearErrors("navigation.header.items", true);
   }
 
   return (
@@ -557,8 +688,8 @@ function HeaderNavSection() {
         <p className="text-sm text-slate-400">ניהול קישורי הניווט.</p>
       </header>
       <div className="space-y-4">
-        {fields.map((field: any, index: number) => (
-          <div key={field.id} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+        {items.map((item: any, index: number) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">פריט #{index + 1}</span>
               <div className="flex items-center gap-2">
@@ -585,14 +716,8 @@ function HeaderNavSection() {
                 </button>
               </div>
             </div>
-            <Field
-              label="כותרת הקישור (ניווט עליון)"
-              name={`navigation.header.items.${index}.title`}
-            />
-            <Field
-              label="נתיב הקישור (ניווט עליון)"
-              name={`navigation.header.items.${index}.path`}
-            />
+            <Field label="כותרת הקישור (ניווט עליון)" name={`navigation.header.items.${index}.title`} />
+            <Field label="נתיב הקישור (ניווט עליון)" name={`navigation.header.items.${index}.path`} />
           </div>
         ))}
         <button
@@ -608,21 +733,30 @@ function HeaderNavSection() {
 }
 
 function FooterNavSection({ resetField }: Resettable) {
-  const form = useFormContext<SiteContent>();
-  const { fields, append, remove, move } = useFieldArray({ control: form.control, name: "navigation.footer.items" });
+  const { values, setFieldValue, clearErrors } = useAdminForm();
+  const items = (getValue(values, "navigation.footer.items") as Array<any>) ?? [];
 
   function addItem() {
-    append({ title: "", path: "", order: fields.length });
+    const next = [...items, { title: "", path: "", order: items.length }];
+    setFieldValue("navigation.footer.items", next);
+    clearErrors("navigation.footer.items", true);
+  }
+
+  function remove(index: number) {
+    const next = items.filter((_, idx) => idx !== index).map((item, idx) => ({ ...item, order: idx }));
+    setFieldValue("navigation.footer.items", next);
+    clearErrors("navigation.footer.items", true);
   }
 
   function reorder(index: number, direction: -1 | 1) {
     const target = index + direction;
-    if (target < 0 || target >= fields.length) return;
-    move(index, target);
-    const updated = form.getValues("navigation.footer.items");
-    updated.forEach((item: any, idx: number) =>
-      form.setValue(`navigation.footer.items.${idx}.order`, idx, { shouldDirty: true })
-    );
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    const normalized = next.map((item, idx) => ({ ...item, order: idx }));
+    setFieldValue("navigation.footer.items", normalized);
+    clearErrors("navigation.footer.items", true);
   }
 
   return (
@@ -632,8 +766,8 @@ function FooterNavSection({ resetField }: Resettable) {
         <p className="text-sm text-slate-400">קישורים וטקסט משפטי בפוטר.</p>
       </header>
       <div className="space-y-4">
-        {fields.map((field: any, index: number) => (
-          <div key={field.id} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+        {items.map((item: any, index: number) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">קישור #{index + 1}</span>
               <div className="flex items-center gap-2">
@@ -660,14 +794,8 @@ function FooterNavSection({ resetField }: Resettable) {
                 </button>
               </div>
             </div>
-            <Field
-              label="כותרת הקישור (פוטר)"
-              name={`navigation.footer.items.${index}.title`}
-            />
-            <Field
-              label="נתיב הקישור (פוטר)"
-              name={`navigation.footer.items.${index}.path`}
-            />
+            <Field label="כותרת הקישור (פוטר)" name={`navigation.footer.items.${index}.title`} />
+            <Field label="נתיב הקישור (פוטר)" name={`navigation.footer.items.${index}.path`} />
           </div>
         ))}
         <button
@@ -708,17 +836,29 @@ function CommonPageSection({ title, basePath, resetField }: { title: string; bas
 }
 
 function PageCommonFields({ basePath, resetField }: { basePath: string; resetField: (path: string) => void }) {
-  const form = useFormContext<SiteContent>();
-  const { fields, append, remove, move } = useFieldArray({ control: form.control, name: `${basePath}.gallery` as any });
+  const { values, setFieldValue, clearErrors } = useAdminForm();
+  const gallery = (getValue(values, `${basePath}.gallery`) as ImageItem[] | undefined) ?? [];
 
   function addImage() {
-    append({ url: "", alt: "" });
+    const next = [...gallery, { url: "", alt: "" }];
+    setFieldValue(`${basePath}.gallery`, next);
+    clearErrors(`${basePath}.gallery`, true);
+  }
+
+  function remove(index: number) {
+    const next = gallery.filter((_, idx) => idx !== index);
+    setFieldValue(`${basePath}.gallery`, next);
+    clearErrors(`${basePath}.gallery`, true);
   }
 
   function reorder(index: number, direction: -1 | 1) {
     const target = index + direction;
-    if (target < 0 || target >= fields.length) return;
-    move(index, target);
+    if (target < 0 || target >= gallery.length) return;
+    const next = [...gallery];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    setFieldValue(`${basePath}.gallery`, next);
+    clearErrors(`${basePath}.gallery`, true);
   }
 
   return (
@@ -742,8 +882,8 @@ function PageCommonFields({ basePath, resetField }: { basePath: string; resetFie
             הוספת תמונה
           </button>
         </div>
-        {fields.map((field: any, index: number) => (
-          <div key={field.id} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+        {gallery.map((_, index) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">תמונה #{index + 1}</span>
               <div className="flex items-center gap-2">
@@ -798,17 +938,29 @@ function HomePageSection({ resetField }: Resettable) {
 }
 
 function AcademySection({ resetField }: Resettable) {
-  const form = useFormContext<SiteContent>();
-  const { fields, append, remove, move } = useFieldArray({ control: form.control, name: "pages.academy.programs" });
+  const { values, setFieldValue, clearErrors } = useAdminForm();
+  const programs = (getValue(values, "pages.academy.programs") as Program[] | undefined) ?? [];
 
   function addProgram() {
-    append({ title: "", description: "", sessionsLabel: "", image: { url: "", alt: "" } });
+    const next = [...programs, { title: "", description: "", sessionsLabel: "", image: { url: "", alt: "" } }];
+    setFieldValue("pages.academy.programs", next);
+    clearErrors("pages.academy.programs", true);
+  }
+
+  function remove(index: number) {
+    const next = programs.filter((_, idx) => idx !== index);
+    setFieldValue("pages.academy.programs", next);
+    clearErrors("pages.academy.programs", true);
   }
 
   function reorder(index: number, direction: -1 | 1) {
     const target = index + direction;
-    if (target < 0 || target >= fields.length) return;
-    move(index, target);
+    if (target < 0 || target >= programs.length) return;
+    const next = [...programs];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    setFieldValue("pages.academy.programs", next);
+    clearErrors("pages.academy.programs", true);
   }
 
   return (
@@ -828,8 +980,8 @@ function AcademySection({ resetField }: Resettable) {
             הוספת תוכנית
           </button>
         </div>
-        {fields.map((field: any, index: number) => (
-          <div key={field.id} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
+        {programs.map((_, index) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">תוכנית #{index + 1}</span>
               <div className="flex items-center gap-2">
@@ -857,15 +1009,8 @@ function AcademySection({ resetField }: Resettable) {
               </div>
             </div>
             <Field label="תוכניות – כותרת" name={`pages.academy.programs.${index}.title`} />
-            <Field
-              label="תוכניות – תיאור"
-              name={`pages.academy.programs.${index}.description`}
-              textarea
-            />
-            <Field
-              label="תוכניות – תגית מפגשים"
-              name={`pages.academy.programs.${index}.sessionsLabel`}
-            />
+            <Field label="תוכניות – תיאור" name={`pages.academy.programs.${index}.description`} textarea />
+            <Field label="תוכניות – תגית מפגשים" name={`pages.academy.programs.${index}.sessionsLabel`} />
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="תוכניות – כתובת תמונה" name={`pages.academy.programs.${index}.image.url`} />
               <Field label="תוכניות – טקסט אלטרנטיבי לתמונה" name={`pages.academy.programs.${index}.image.alt`} />
@@ -878,7 +1023,9 @@ function AcademySection({ resetField }: Resettable) {
 }
 
 function ContactSection({ resetField }: Resettable) {
-  const form = useFormContext<SiteContent>();
+  const { values, setFieldValue, clearErrors } = useAdminForm();
+  const enabled = Boolean(getValue(values, "pages.contact.contactForm.enabled"));
+
   return (
     <section className="space-y-6">
       <header className="space-y-2">
@@ -890,17 +1037,16 @@ function ContactSection({ resetField }: Resettable) {
         <Field label="טלפון" name="pages.contact.phone" resetField={resetField} />
         <Field label="אימייל" name="pages.contact.email" resetField={resetField} />
       </div>
-      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-        <label
-          className="flex items-center gap-2 text-sm text-slate-200"
-          htmlFor="contact-form-enabled"
-          data-field-label="הפעלת טופס"
-          data-field-name="pages.contact.contactForm.enabled"
-        >
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4" data-field-label="הפעלת טופס" data-field-name="pages.contact.contactForm.enabled">
+        <label className="flex items-center gap-2 text-sm text-slate-200" htmlFor="contact-form-enabled">
           <input
             id="contact-form-enabled"
             type="checkbox"
-            {...form.register("pages.contact.contactForm.enabled")}
+            checked={enabled}
+            onChange={(event) => {
+              setFieldValue("pages.contact.contactForm.enabled", event.target.checked);
+              clearErrors("pages.contact.contactForm.enabled");
+            }}
             className="h-4 w-4"
           />
           <span>הפעלת טופס</span>
