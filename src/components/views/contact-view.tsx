@@ -1,26 +1,47 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useSiteContent } from "@/components/content-provider";
+import type { ContactPageContent } from "@/content/types";
+import type { AppLocale } from "@/i18n/request";
+import { Markdown } from "@/components/markdown";
 
-export function ContactView() {
-  const { content, locale } = useSiteContent();
-  const contact = content.contact;
+type ContactViewProps = {
+  locale: AppLocale;
+  content: ContactPageContent;
+};
 
+export function ContactView({ locale, content }: ContactViewProps) {
+  const formConfig = content.contactForm;
   return (
     <div className="container-page space-y-8 py-16">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-primary-200">{contact.title}</h1>
-        <p className="text-sm text-slate-200">{contact.description}</p>
+        <h1 className="text-3xl font-bold text-primary-200">{content.title}</h1>
+        {content.subtitle && <p className="text-sm text-slate-200">{content.subtitle}</p>}
+        <Markdown content={content.body} className="max-w-none" />
+        <div className="flex flex-col gap-2 text-xs text-slate-400">
+          {content.email && <span>{content.email}</span>}
+          {content.phone && <span>{content.phone}</span>}
+          {content.address && <span>{content.address}</span>}
+        </div>
       </div>
-      <ContactForm locale={locale} />
+      {formConfig?.enabled ? (
+        <ContactForm locale={locale} submitLabel={formConfig.submitLabel} successMessage={formConfig.successMessage} />
+      ) : (
+        <p className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-200">
+          {locale === "he" ? "הטופס אינו פעיל כרגע. צרו קשר במייל או בטלפון." : "The form is currently disabled. Please reach out via email or phone."}
+        </p>
+      )}
     </div>
   );
 }
 
-function ContactForm({ locale }: { locale: string }) {
-  const { content } = useSiteContent();
-  const messages = content.contact;
+type ContactFormProps = {
+  locale: AppLocale;
+  submitLabel?: string;
+  successMessage?: string;
+};
+
+function ContactForm({ locale, submitLabel, successMessage }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -45,7 +66,7 @@ function ContactForm({ locale }: { locale: string }) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        setErrorMessage(body?.error || messages.errorMessage);
+        setErrorMessage(body?.error || (locale === "he" ? "אירעה תקלה בשליחה." : "Submission failed."));
         setStatus("error");
         return;
       }
@@ -54,7 +75,7 @@ function ContactForm({ locale }: { locale: string }) {
       event.currentTarget.reset();
     } catch (error) {
       console.error(error);
-      setErrorMessage(messages.errorMessage);
+      setErrorMessage(locale === "he" ? "אירעה תקלה בשליחה." : "Submission failed.");
       setStatus("error");
     }
   }
@@ -63,7 +84,7 @@ function ContactForm({ locale }: { locale: string }) {
     <form onSubmit={onSubmit} className="space-y-4" aria-live="polite">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-2 text-sm text-slate-200">
-          <span>{messages.fields.name}</span>
+          <span>{locale === "he" ? "שם מלא" : "Full name"}</span>
           <input
             className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 focus:border-primary-400 focus:outline-none"
             name="name"
@@ -74,7 +95,7 @@ function ContactForm({ locale }: { locale: string }) {
           />
         </label>
         <label className="flex flex-col gap-2 text-sm text-slate-200">
-          <span>{messages.fields.email}</span>
+          <span>{locale === "he" ? "אימייל" : "Email"}</span>
           <input
             className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 focus:border-primary-400 focus:outline-none"
             name="email"
@@ -86,7 +107,7 @@ function ContactForm({ locale }: { locale: string }) {
         </label>
       </div>
       <label className="flex flex-col gap-2 text-sm text-slate-200">
-        <span>{messages.fields.message}</span>
+        <span>{locale === "he" ? "איך נוכל לעזור?" : "How can we help?"}</span>
         <textarea
           className="min-h-[160px] rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 focus:border-primary-400 focus:outline-none"
           name="message"
@@ -98,9 +119,11 @@ function ContactForm({ locale }: { locale: string }) {
         className="inline-flex items-center justify-center rounded-full bg-accent-400 px-6 py-3 text-sm font-semibold text-slate-950 transition-transform hover:-translate-y-0.5 hover:bg-accent-300 disabled:cursor-not-allowed disabled:opacity-70"
         disabled={status === "loading"}
       >
-        {status === "loading" ? "..." : messages.fields.submit}
+        {status === "loading" ? (locale === "he" ? "שולח..." : "Sending...") : submitLabel ?? (locale === "he" ? "שליחה" : "Send")}
       </button>
-      {status === "success" && <p className="text-sm text-primary-200">{messages.successMessage}</p>}
+      {status === "success" && (
+        <p className="text-sm text-primary-200">{successMessage ?? (locale === "he" ? "הטופס נשלח בהצלחה!" : "Thanks! We'll be in touch soon.")}</p>
+      )}
       {status === "error" && errorMessage && <p className="text-sm text-red-300">{errorMessage}</p>}
     </form>
   );
