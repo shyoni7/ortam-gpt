@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { AppLocale } from "@/i18n/request";
 import type { HomePageContent, PageCommon } from "@/content/types";
 import { Markdown } from "@/components/markdown";
+import { buildNavigationHref, isExternalNavigationHref } from "@/lib/navigation";
 
 type HomeViewProps = {
   locale: AppLocale;
@@ -12,6 +13,39 @@ type HomeViewProps = {
 
 export function HomeView({ locale, content, relatedPages }: HomeViewProps) {
   const cta = content.cta;
+
+  function renderCta(
+    label: string,
+    href: string,
+    variant: "primary" | "secondary"
+  ) {
+    const resolvedHref = buildNavigationHref(locale, href);
+    const isExternal = isExternalNavigationHref(resolvedHref) || resolvedHref.startsWith("#");
+    const className =
+      variant === "primary"
+        ? "rounded-full bg-primary-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-primary-500/30 transition-transform hover:-translate-y-0.5 hover:bg-primary-400"
+        : "rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:border-accent-400 hover:text-accent-200";
+
+    if (isExternal) {
+      return (
+        <a
+          key={`${label}-${href}`}
+          href={resolvedHref}
+          target={resolvedHref.startsWith("http") ? "_blank" : undefined}
+          rel={resolvedHref.startsWith("http") ? "noreferrer" : undefined}
+          className={className}
+        >
+          {label}
+        </a>
+      );
+    }
+
+    return (
+      <Link key={`${label}-${href}`} className={className} href={resolvedHref}>
+        {label}
+      </Link>
+    );
+  }
   return (
     <div className="container-page space-y-16 py-16">
       <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
@@ -21,22 +55,10 @@ export function HomeView({ locale, content, relatedPages }: HomeViewProps) {
           <Markdown content={content.body} className="mx-auto max-w-none text-sm lg:text-base" />
           {cta && (cta.primaryLabel || cta.secondaryLabel) && (
             <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
-              {cta.primaryLabel && cta.primaryHref && (
-                <Link
-                  className="rounded-full bg-primary-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-primary-500/30 transition-transform hover:-translate-y-0.5 hover:bg-primary-400"
-                  href={`/${locale}${cta.primaryHref}`}
-                >
-                  {cta.primaryLabel}
-                </Link>
-              )}
-              {cta.secondaryLabel && cta.secondaryHref && (
-                <Link
-                  className="rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-100 transition-colors hover:border-accent-400 hover:text-accent-200"
-                  href={`/${locale}${cta.secondaryHref}`}
-                >
-                  {cta.secondaryLabel}
-                </Link>
-              )}
+              {cta.primaryLabel && cta.primaryHref &&
+                renderCta(cta.primaryLabel, cta.primaryHref, "primary")}
+              {cta.secondaryLabel && cta.secondaryHref &&
+                renderCta(cta.secondaryLabel, cta.secondaryHref, "secondary")}
             </div>
           )}
         </div>
@@ -64,7 +86,7 @@ export function HomeView({ locale, content, relatedPages }: HomeViewProps) {
                 <Markdown content={page.body} className="mt-3 max-w-none text-xs text-slate-400" />
                 <Link
                   className="mt-4 inline-flex items-center text-sm font-semibold text-accent-200 transition-colors hover:text-accent-100"
-                  href={`/${locale}/${page.slug}`}
+                  href={buildNavigationHref(locale, `/${page.slug}`)}
                 >
                   {locale === "he" ? "למעבר לעמוד" : "View page"}
                 </Link>
