@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import type { AppLocale } from "@/i18n/request";
 import type { Navigation } from "@/content/types";
+import { buildNavigationHref, isExternalNavigationHref } from "@/lib/navigation";
 
 const switchLocale: Record<AppLocale, AppLocale> = {
   he: "en",
@@ -23,13 +24,6 @@ function buildLocalizedPath(pathname: string | null, nextLocale: AppLocale) {
   const segments = pathname.split("/").filter(Boolean);
   segments[0] = nextLocale;
   return `/${segments.join("/")}`;
-}
-
-function withLocalePath(locale: AppLocale, path: string) {
-  if (!path || path === "/") {
-    return `/${locale}`;
-  }
-  return `/${locale}${path}`;
 }
 
 type HeaderProps = {
@@ -52,16 +46,18 @@ export function Header({ locale, brandName, navigation }: HeaderProps) {
         </Link>
         <nav className="flex flex-wrap items-center gap-4 text-sm font-medium">
           {items.map((item) => {
-            const href = withLocalePath(locale, item.path);
-            const isActive = pathname === href || (href.endsWith("/") && pathname === href.slice(0, -1));
+            const href = buildNavigationHref(locale, item.path);
+            const isExternal = isExternalNavigationHref(href) || href.startsWith("#");
+            const isActive =
+              !isExternal && (pathname === href || (href.endsWith("/") && pathname === href.slice(0, -1)));
             return (
               <Link
                 key={`${item.title}-${item.order}`}
                 href={href}
-                className={clsx(
-                  "transition-colors hover:text-accent-300",
-                  isActive && "text-accent-200"
-                )}
+                prefetch={!isExternal}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noreferrer" : undefined}
+                className={clsx("transition-colors hover:text-accent-300", isActive && "text-accent-200")}
               >
                 {item.title}
               </Link>

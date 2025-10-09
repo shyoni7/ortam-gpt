@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AppLocale } from "@/i18n/request";
 import type { Navigation, ContactPageContent } from "@/content/types";
+import { buildNavigationHref, isExternalNavigationHref } from "@/lib/navigation";
 
 type FooterProps = {
   locale: AppLocale;
@@ -19,11 +20,22 @@ export function Footer({ locale, navigation, contact }: FooterProps) {
           {contact.address && <span>{contact.address}</span>}
         </div>
         <nav className="flex flex-wrap gap-4 text-[13px]">
-          {footerItems.map((item) => (
-            <Link key={`${item.title}-${item.order}`} href={`/${locale}${item.path}`} className="transition-colors hover:text-accent-200">
-              {item.title}
-            </Link>
-          ))}
+          {footerItems.map((item) => {
+            const href = buildNavigationHref(locale, item.path);
+            const external = isExternalNavigationHref(href) || href.startsWith("#");
+            return (
+              <Link
+                key={`${item.title}-${item.order}`}
+                href={href}
+                prefetch={!external}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noreferrer" : undefined}
+                className="transition-colors hover:text-accent-200"
+              >
+                {item.title}
+              </Link>
+            );
+          })}
         </nav>
         {navigation.footer.legal && <span>{navigation.footer.legal}</span>}
         <Link href="/admin" className="w-fit text-[11px] font-semibold text-primary-200 transition-colors hover:text-primary-100">
