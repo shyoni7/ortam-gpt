@@ -1,108 +1,140 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { AppLocale } from "@/i18n/request";
-import { defaultContent } from "@/content/default-content";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import defaultContent from "@/content/default-content";
 import type { LocaleSiteContent, SiteContent } from "@/content/types";
+import type { AppLocale } from "@/i18n/request";
 
 const STORAGE_KEY = "ortam-ai-site-content";
 
-export function deepClone<T>(value: T): T {
+function clone<T>(value: T): T {
   if (typeof structuredClone === "function") {
     return structuredClone(value);
   }
-
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-type ContentContextValue = {
-  locale: AppLocale;
-  content: LocaleSiteContent;
-  contentMap: SiteContent;
-  ready: boolean;
-  setLocaleContent: (locale: AppLocale, next: LocaleSiteContent) => void;
-  reset: () => void;
-};
+function mergeWithDefaults(stored?: Partial<LocaleSiteContent>): LocaleSiteContent {
+  return {
+    he: {
+      ...defaultContent.he,
+      ...(stored?.he ? clone(stored.he) : {}),
+    },
+    en: {
+      ...defaultContent.en,
+      ...(stored?.en ? clone(stored.en) : {}),
+    },
+  } satisfies LocaleSiteContent;
+}
 
-const ContentContext = createContext<ContentContextValue | null>(null);
-
-function mergeWithDefaults(stored: unknown): SiteContent {
-  if (!stored || typeof stored !== "object") {
-    return deepClone(defaultContent);
+function readFromStorage(): LocaleSiteContent {
+  if (typeof window === "undefined") {
+    return clone(defaultContent);
   }
-
   try {
-    const parsed = stored as SiteContent;
-    return {
-      he: { ...defaultContent.he, ...(parsed.he ? deepClone(parsed.he) : {}) },
-      en: { ...defaultContent.en, ...(parsed.en ? deepClone(parsed.en) : {}) },
-    };
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return clone(defaultContent);
+    }
+    const parsed = JSON.parse(raw) as Partial<LocaleSiteContent>;
+    return mergeWithDefaults(parsed);
   } catch (error) {
     console.warn("Failed to parse stored content", error);
-    return deepClone(defaultContent);
+    return clone(defaultContent);
   }
 }
 
-export function ContentProvider({ locale, children }: { locale: AppLocale; children: ReactNode }) {
-  const [contentMap, setContentMap] = useState<SiteContent>(() => deepClone(defaultContent));
-  const [ready, setReady] = useState(false);
+function writeToStorage(content: LocaleSiteContent) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+  } catch (error) {
+    console.warn("Failed to persist admin content", error);
+  }
+}
+
+interface ContentContextValue {
+  locale: AppLocale;
+  content: SiteContent;
+  updateContent: (next: SiteContent) => void;
+  resetLocale: () => void;
+}
+
+const ContentContext = createContext<ContentContextValue | null>(null);
+
+interface ContentProviderProps {
+  locale: AppLocale;
+  initialContent: SiteContent;
+  children: ReactNode;
+}
+
+export function ContentProvider({ locale, initialContent, children }: ContentProviderProps) {
+  const storedRef = useRef<LocaleSiteContent>(readFromStorage());
+  const [current, setCurrent] = useState<SiteContent>(() => {
+    return storedRef.current[locale] ?? clone(initialContent);
+  });
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as SiteContent;
-        setContentMap(mergeWithDefaults(parsed));
-      }
-    } catch (error) {
-      console.warn("Failed to load stored content", error);
-    } finally {
-      setReady(true);
-    }
-  }, []);
+    setCurrent(storedRef.current[locale] ?? clone(initialContent));
+  }, [initialContent, locale]);
 
   useEffect(() => {
-    if (!ready || typeof window === "undefined") {
-      return;
-    }
-
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(contentMap));
-  }, [contentMap, ready]);
-
-  const setLocaleContent = (targetLocale: AppLocale, next: LocaleSiteContent) => {
-    setContentMap((previous) => ({ ...previous, [targetLocale]: deepClone(next) }));
-  };
-
-  const reset = () => {
-    setContentMap(deepClone(defaultContent));
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
-  };
+    const nextCache: LocaleSiteContent = {
+      ...storedRef.current,
+      [locale]: clone(current),
+    } as LocaleSiteContent;
+    storedRef.current = nextCache;
+    writeToStorage(nextCache);
+  }, [current, locale]);
 
   const value = useMemo<ContentContextValue>(
     () => ({
       locale,
-      content: contentMap[locale],
-      contentMap,
-      ready,
-      setLocaleContent,
-      reset,
+      content: current,
+      updateContent: (next) => {
+        setCurrent(clone(next));
+      },
+      resetLocale: () => {
+        const merged: LocaleSiteContent = {
+          ...storedRef.current,
+          [locale]: clone(initialContent),
+        } as LocaleSiteContent;
+        storedRef.current = merged;
+        setCurrent(clone(initialContent));
+        writeToStorage(merged);
+      },
     }),
-    [locale, contentMap, ready]
+    [current, initialContent, locale]
   );
 
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 }
 
-export function useSiteContent() {
+export function useContentContext(): ContentContextValue {
   const ctx = useContext(ContentContext);
   if (!ctx) {
-    throw new Error("useSiteContent must be used within a ContentProvider");
+    throw new Error("useContentContext must be used within a ContentProvider");
   }
   return ctx;
+}
+
+export function clearStoredContent() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn("Failed to clear stored content", error);
+  }
 }
