@@ -3,20 +3,60 @@
   "navigation": {
     "header": {
       "items": [
-        { "title": "בית", "path": "/", "order": 0 },
-        { "title": "עלינו", "path": "/about", "order": 1 },
-        { "title": "האקדמיה", "path": "/academy", "order": 2 },
-        { "title": "חממה", "path": "/incubator", "order": 3 },
-        { "title": "השמה", "path": "/placement", "order": 4 },
-        { "title": "צור קשר", "path": "/contact", "order": 5 }
+        {
+          "title": "בית",
+          "path": "/",
+          "order": 0
+        },
+        {
+          "title": "עלינו",
+          "path": "/about",
+          "order": 1
+        },
+        {
+          "title": "האקדמיה",
+          "path": "/academy",
+          "order": 2
+        },
+        {
+          "title": "חממה",
+          "path": "/incubator",
+          "order": 3
+        },
+        {
+          "title": "השמה",
+          "path": "/placement",
+          "order": 4
+        },
+        {
+          "title": "צור קשר",
+          "path": "/contact",
+          "order": 5
+        }
       ]
     },
     "footer": {
       "items": [
-        { "title": "עלינו", "path": "/about", "order": 0 },
-        { "title": "בלוג", "path": "/blog", "order": 1 },
-        { "title": "מדיניות פרטיות", "path": "/privacy", "order": 2 },
-        { "title": "תנאי שימוש", "path": "/terms", "order": 3 }
+        {
+          "title": "עלינו",
+          "path": "/about",
+          "order": 0
+        },
+        {
+          "title": "בלוג",
+          "path": "/blog",
+          "order": 1
+        },
+        {
+          "title": "מדיניות פרטיות",
+          "path": "/privacy",
+          "order": 2
+        },
+        {
+          "title": "תנאי שימוש",
+          "path": "/terms",
+          "order": 3
+        }
       ],
       "legal": "© 2024 ORTAM AI. כל הזכויות שמורות."
     }
@@ -28,7 +68,7 @@
   "pages": {
     "home": {
       "slug": "home",
-      "title": "אנחנו הגשר בין העולם הישן לעולם מבוסס AI",
+      "title": "ORTAM AI הגשר שלך מהעולם של אתמול לעולם ה AI של מחר ",
       "subtitle": "חממה טכנולוגית, מרכז הדרכה ומערך השמה תחת קורת גג אחת.",
       "body": "אנחנו שותפי הצמיחה של עיריות, מוסדות חינוך וארגונים שרוצים ליישם AI במהירות, בביטחון ובהלימה לערכים שלהם.",
       "hero": {
