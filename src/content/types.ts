@@ -79,3 +79,5 @@ export interface SiteContent {
     contact: ContactPageContent;
   };
 }
+
+export type LocaleSiteContent = Record<Locale, SiteContent>;
