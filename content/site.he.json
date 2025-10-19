@@ -3,20 +3,70 @@
   "navigation": {
     "header": {
       "items": [
-        { "title": "בית", "path": "/", "order": 0 },
-        { "title": "עלינו", "path": "/about", "order": 1 },
-        { "title": "האקדמיה", "path": "/academy", "order": 2 },
-        { "title": "חממה", "path": "/incubator", "order": 3 },
-        { "title": "השמה", "path": "/placement", "order": 4 },
-        { "title": "צור קשר", "path": "/contact", "order": 5 }
+        {
+          "title": "בית",
+          "path": "/",
+          "order": 0
+        },
+        {
+          "title": "בניית סוכני AI",
+          "path": "/agents",
+          "order": 1
+        },
+        {
+          "title": "עלינו",
+          "path": "/about",
+          "order": 2
+        },
+        {
+          "title": "האקדמיה",
+          "path": "/academy",
+          "order": 3
+        },
+        {
+          "title": "חממה",
+          "path": "/incubator",
+          "order": 4
+        },
+        {
+          "title": "השמה",
+          "path": "/placement",
+          "order": 5
+        },
+        {
+          "title": "צור קשר",
+          "path": "/contact",
+          "order": 6
+        }
       ]
     },
     "footer": {
       "items": [
-        { "title": "עלינו", "path": "/about", "order": 0 },
-        { "title": "בלוג", "path": "/blog", "order": 1 },
-        { "title": "מדיניות פרטיות", "path": "/privacy", "order": 2 },
-        { "title": "תנאי שימוש", "path": "/terms", "order": 3 }
+        {
+          "title": "עלינו",
+          "path": "/about",
+          "order": 0
+        },
+        {
+          "title": "מערכת סוכני AI",
+          "path": "/agents",
+          "order": 1
+        },
+        {
+          "title": "בלוג",
+          "path": "/blog",
+          "order": 2
+        },
+        {
+          "title": "מדיניות פרטיות",
+          "path": "/privacy",
+          "order": 3
+        },
+        {
+          "title": "תנאי שימוש",
+          "path": "/terms",
+          "order": 4
+        }
       ],
       "legal": "© 2024 ORTAM AI. כל הזכויות שמורות."
     }
@@ -141,6 +191,86 @@
         "submitLabel": "שליחה",
         "successMessage": "הטופס נשלח בהצלחה! נחזור אליכם תוך 24 שעות."
       }
+    },
+    "agents": {
+      "slug": "agents",
+      "title": "מערכת לבניית סוכני AI",
+      "subtitle": "פלטפורמה לניהול חיי סוכן משלב האפיון ועד הטמעת האינטגרציות.",
+      "body": "פלטפורמת ORTAM מאפשרת לכם להגדיר פרסונות, תהליכים ואינטגרציות בלחיצה אחת. בנו מפרט סוכן, שתפו אותו עם בעלי העניין וחברו אותו ישירות למערכות שלכם.",
+      "benefits": [
+        {
+          "title": "תבניות מותאמות מחלקות",
+          "description": "בנו סוכנים לשירות, תפעול, חינוך ועוד בעזרת ספריית תסריטים ותוכן מובנים מראש."
+        },
+        {
+          "title": "ניהול אינטגרציות מאובטח",
+          "description": "תעדו חיבורים, מפתחות וגישה לנתונים במקום אחד עם הפרדת הרשאות ונהלי אבטחה."
+        },
+        {
+          "title": "Playbook אוטומטי",
+          "description": "קבלו מסמך נהלים מלא הכולל טריגרים, תגובות וקריאות API לכל צוות."
+        }
+      ],
+      "workflowSteps": [
+        {
+          "title": "אפיון ומיקוד",
+          "description": "הגדירו את מטרות הסוכן, קהל היעד ומדדי ההצלחה שלו."
+        },
+        {
+          "title": "חיבורים ונתונים",
+          "description": "בחרו מערכות קיימות, הגדירו חיבורי API והוסיפו פעולות מרכזיות."
+        },
+        {
+          "title": "ניהול נהלים",
+          "description": "צרו כללי עבודה, תסריטי תגובה והגנות לפני העברה לפיתוח."
+        }
+      ],
+      "integrationOptions": [
+        {
+          "name": "Salesforce Service Cloud",
+          "category": "CRM",
+          "description": "סנכרון פניות, פתיחת קריאות וקריאת נתוני לקוחות בזמן אמת."
+        },
+        {
+          "name": "Priority ERP",
+          "category": "ERP",
+          "description": "בדיקת מלאי, יצירת הזמנות ומעקב תשלומים דרך ממשקי ORTAM."
+        },
+        {
+          "name": "Municipality 360",
+          "category": "מערכות עירוניות",
+          "description": "גישה למידע תושב, ניהול פניות ודוחות עירוניים."
+        },
+        {
+          "name": "Zendesk",
+          "category": "Support",
+          "description": "פתיחת טיקטים, שאילת מאקרואים ותיעוד תקשורות עבור מוקדים."
+        },
+        {
+          "name": "Google Calendar",
+          "category": "Scheduling",
+          "description": "תיאום פגישות, תזמונים והתראות מול עובדי הארגון."
+        },
+        {
+          "name": "SharePoint",
+          "category": "Knowledge",
+          "description": "שליפת נהלים ומסמכים מאגרי הידע של הארגון."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "איך מתממשקים למערכות פנימיות?",
+          "answer": "המערכת מאפשרת להזין נקודות קצה, שיטות אימות ומשאבים נדרשים. צוות ORTAM מלווה אתכם בתיעוד ובבדיקות."
+        },
+        {
+          "question": "האם ניתן להגדיר מספר סוכנים?",
+          "answer": "כן, תוכלו ליצור ספרייה שלמה של סוכנים, לשכפל תבניות ולהתאים אותן לכל מחלקה."
+        },
+        {
+          "question": "מה קורה אחרי מילוי הטופס?",
+          "answer": "נציג מומחה מנתח את הנתונים, בונה פיילוט ומספק סביבת בדיקות עם החיבורים שבחרתם."
+        }
+      ]
     }
   }
 }

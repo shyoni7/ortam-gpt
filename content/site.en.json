@@ -3,20 +3,70 @@
   "navigation": {
     "header": {
       "items": [
-        { "title": "Home", "path": "/", "order": 0 },
-        { "title": "About", "path": "/about", "order": 1 },
-        { "title": "Academy", "path": "/academy", "order": 2 },
-        { "title": "Incubator", "path": "/incubator", "order": 3 },
-        { "title": "Placement", "path": "/placement", "order": 4 },
-        { "title": "Contact", "path": "/contact", "order": 5 }
+        {
+          "title": "Home",
+          "path": "/",
+          "order": 0
+        },
+        {
+          "title": "AI Agents",
+          "path": "/agents",
+          "order": 1
+        },
+        {
+          "title": "About",
+          "path": "/about",
+          "order": 2
+        },
+        {
+          "title": "Academy",
+          "path": "/academy",
+          "order": 3
+        },
+        {
+          "title": "Incubator",
+          "path": "/incubator",
+          "order": 4
+        },
+        {
+          "title": "Placement",
+          "path": "/placement",
+          "order": 5
+        },
+        {
+          "title": "Contact",
+          "path": "/contact",
+          "order": 6
+        }
       ]
     },
     "footer": {
       "items": [
-        { "title": "About", "path": "/about", "order": 0 },
-        { "title": "Blog", "path": "/blog", "order": 1 },
-        { "title": "Privacy", "path": "/privacy", "order": 2 },
-        { "title": "Terms", "path": "/terms", "order": 3 }
+        {
+          "title": "About",
+          "path": "/about",
+          "order": 0
+        },
+        {
+          "title": "AI Agent Platform",
+          "path": "/agents",
+          "order": 1
+        },
+        {
+          "title": "Blog",
+          "path": "/blog",
+          "order": 2
+        },
+        {
+          "title": "Privacy",
+          "path": "/privacy",
+          "order": 3
+        },
+        {
+          "title": "Terms",
+          "path": "/terms",
+          "order": 4
+        }
       ],
       "legal": "© 2024 ORTAM AI. All rights reserved."
     }
@@ -141,6 +191,86 @@
         "submitLabel": "Send",
         "successMessage": "Thanks for reaching out! We'll respond within one business day."
       }
+    },
+    "agents": {
+      "slug": "agents",
+      "title": "AI agent operations platform",
+      "subtitle": "Design, document and launch AI agents with managed API integrations.",
+      "body": "The ORTAM platform helps your teams define personas, processes and integrations in minutes. Capture every requirement, share it with stakeholders and connect it straight to your systems.",
+      "benefits": [
+        {
+          "title": "Department-ready templates",
+          "description": "Launch support, operations, education and HR agents with curated playbooks and tone guidelines."
+        },
+        {
+          "title": "Secure integration registry",
+          "description": "Document endpoints, credentials and data scopes with clear ownership and access policies."
+        },
+        {
+          "title": "Automated playbooks",
+          "description": "Generate a complete SOP that includes triggers, responses and API workflows for every agent."
+        }
+      ],
+      "workflowSteps": [
+        {
+          "title": "Define the mission",
+          "description": "Clarify objectives, audiences and success metrics for the agent."
+        },
+        {
+          "title": "Connect data and tools",
+          "description": "Select existing platforms, describe the API connections and outline required operations."
+        },
+        {
+          "title": "Publish guardrails",
+          "description": "Capture workflows, responses and safety guidelines before handing off to delivery teams."
+        }
+      ],
+      "integrationOptions": [
+        {
+          "name": "Salesforce Service Cloud",
+          "category": "CRM",
+          "description": "Sync cases, open tickets and pull customer insights in real time."
+        },
+        {
+          "name": "Priority ERP",
+          "category": "ERP",
+          "description": "Check inventory, create orders and monitor payments through unified actions."
+        },
+        {
+          "name": "Municipality 360",
+          "category": "Civic tech",
+          "description": "Access resident data, handle requests and automate municipal reporting."
+        },
+        {
+          "name": "Zendesk",
+          "category": "Support",
+          "description": "Log support tickets, trigger macros and document omni-channel conversations."
+        },
+        {
+          "name": "Google Calendar",
+          "category": "Scheduling",
+          "description": "Coordinate meetings, reminders and field operations availability."
+        },
+        {
+          "name": "SharePoint",
+          "category": "Knowledge",
+          "description": "Retrieve policies and documents directly from your knowledge repositories."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How do we connect internal systems?",
+          "answer": "Document endpoints, authentication and required resources in the builder. The ORTAM delivery team validates and wires everything."
+        },
+        {
+          "question": "Can we manage multiple agents?",
+          "answer": "Absolutely. Create a full library, duplicate templates and tailor each agent per department."
+        },
+        {
+          "question": "What happens after submission?",
+          "answer": "A solution expert reviews the blueprint, prepares a pilot and provides a sandbox with the selected integrations."
+        }
+      ]
     }
   }
 }
