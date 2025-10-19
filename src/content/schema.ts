@@ -128,6 +128,7 @@ function ensurePagesObject(pages: SiteContent["pages"]) {
     "academy",
     "incubator",
     "placement",
+    "agents",
     "contact",
   ];
   for (const key of requiredKeys) {
@@ -174,6 +175,7 @@ export function validateSiteContent(content: SiteContent): ValidationErrors {
   validateAcademyPage(content.pages.academy, errors);
   validatePageCommon(content.pages.incubator, "incubator", errors);
   validatePageCommon(content.pages.placement, "placement", errors);
+  validatePageCommon(content.pages.agents, "agents", errors);
   validateContactPage(content.pages.contact, errors);
   return errors;
 }

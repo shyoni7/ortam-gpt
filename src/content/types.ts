@@ -37,6 +37,26 @@ export interface AcademyPageContent extends PageCommon {
 export interface IncubatorPageContent extends PageCommon {}
 export interface PlacementPageContent extends PageCommon {}
 
+export interface AgentsBuilderPageContent extends PageCommon {
+  benefits?: Array<{
+    title: string;
+    description: string;
+  }>;
+  workflowSteps?: Array<{
+    title: string;
+    description: string;
+  }>;
+  integrationOptions?: Array<{
+    name: string;
+    description: string;
+    category?: string;
+  }>;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
 export interface ContactFormConfig {
   enabled?: boolean;
   submitLabel?: string;
@@ -76,6 +96,7 @@ export interface SiteContent {
     academy: AcademyPageContent;
     incubator: IncubatorPageContent;
     placement: PlacementPageContent;
+    agents: AgentsBuilderPageContent;
     contact: ContactPageContent;
   };
 }
